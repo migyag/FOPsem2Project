@@ -12,7 +12,7 @@ public class ParseLog {
 
         System.out.printf("%-25s %-30s %-15s %-15s %-15s %-10s%n", 
             "Timestamp", "Action", "Job ID", "InitPrio", "usec", "Exit Status");
-
+          List<String[]> errorCounts = new ArrayList<>(); 
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(new File(logFilePath)))) {
             String line;
 
@@ -42,7 +42,26 @@ public class ParseLog {
 
                     System.out.printf("%-25s %-30s %-15s %-15s %-15s %-10s%n", 
                         timestamp, action, jobId, initialPriority, microseconds, exitStatus);
+                        if (line.contains("error: This association")) {
+                        String user = line.substring(line.indexOf("user=") + "user=".length(), line.indexOf(" "));
+                        boolean userExists = false;
+                        for (String[] count : errorCounts) {
+                            if (count[0].equals(user)) {
+                             userExists = true;
+                            count[1] = String.valueOf(Integer.parseInt(count[1]) + 1);
+                                break;
+                     
+                     }
+            }
+                            if (!userExists) {
+                                errorCounts.add(new String[]{user, "1"});
+                      }
+                    }
                 }
+            }
+            System.out.println("\nNumber of jobs causing error by user:");
+            for (String[] count : errorCounts) {
+                System.out.printf("%-10s: %s%n", count[0], count[1]);
             }
         } catch (IOException e) {
             e.printStackTrace();
